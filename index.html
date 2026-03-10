@@ -216,92 +216,117 @@ return valid;
 }
 
 function addRow(){
-    const tbody=document.querySelector("#livraisonTable tbody");
-    const row=tbody.insertRow();
-    row.insertCell(0).className="number-cell";
-    row.insertCell(1).textContent=formattedDate;
 
-    for(let i=2;i<=7;i++){
-        let cell=row.insertCell(i);
-        cell.contentEditable=true;
+const tbody=document.querySelector("#livraisonTable tbody");
+const row=tbody.insertRow();
 
-       if(i===6){
-        cell.addEventListener("keydown",function(e){
+row.insertCell(0).className="number-cell";
+row.insertCell(1).textContent=formattedDate;
 
-        if(
-        !/[0-9]/.test(e.key) &&
-        e.key !== "Backspace" &&
-        e.key !== "Delete" &&
-        e.key !== "ArrowLeft" &&
-        e.key !== "ArrowRight"
-        ){
-        e.preventDefault();
-        }
+for(let i=2;i<=7;i++){
 
-        });
-        }
+let cell=row.insertCell(i);
 
-        if(i===6){
-        cell.addEventListener("input",function(){
-        let raw=this.textContent.replace(/\D/g,'');
-        if(raw===""){this.textContent="";return;}
-        let value=parseInt(raw);
-        if(value<0)value=0;
-        if(value>1010000)value=1010000;
-        this.textContent=value.toLocaleString('fr-FR');
-        placeCaretAtEnd(this);
-        });
-        }
+if(i===6){
 
-        cell.addEventListener("keydown",function(e){
+cell.innerHTML='<input type="tel" inputmode="numeric" class="prixInput" style="width:100%;border:none;outline:none;font-size:16px">';
 
-            if(e.key==="Enter"){
-            e.preventDefault();
+}else{
 
-            let row=this.parentElement;
-            let next=row.nextElementSibling;
+cell.contentEditable=true;
 
-            if(next){
-            next.cells[2].focus();
-            }else{
-            addRow();
-            setTimeout(()=>{
-            let rows=document.querySelectorAll("#livraisonTable tbody tr");
-            rows[rows.length-1].cells[2].focus();
-            },100);
-            }
-            }
+cell.addEventListener("keydown",function(e){
 
-            if(e.key==="Tab"){
-                e.preventDefault();
+if(e.key==="Enter"){
+e.preventDefault();
 
-                let cellIndex=this.cellIndex;
-                let row=this.parentElement;
-                let next=row.cells[cellIndex+1];
+let row=this.parentElement;
+let next=row.nextElementSibling;
 
-                if(next){
-                next.focus();
-                }
+if(next){
+next.cells[2].focus();
+}else{
+addRow();
+setTimeout(()=>{
+let rows=document.querySelectorAll("#livraisonTable tbody tr");
+rows[rows.length-1].cells[2].focus();
+},100);
+}
+}
 
-            }
+if(e.key==="Tab"){
+e.preventDefault();
 
-        });
-        cell.addEventListener("blur",()=>validateCell(cell,i));
-    }
+let cellIndex=this.cellIndex;
+let row=this.parentElement;
+let next=row.cells[cellIndex+1];
 
-    const action=row.insertCell(8);
-    const btn=document.createElement("button");
-    btn.innerHTML="🗑";btn.className="delete";
-    btn.onclick=()=>{
-        if(tbody.rows.length===1){showAlert("Impossible de supprimer la dernière ligne.");return;}
-        tbody.removeChild(row);updateNumbers();
-    };
-    action.appendChild(btn);
-    updateNumbers();
+if(next){
+next.focus();
+}
+}
 
-    setTimeout(()=>{
-        row.cells[2].focus();
-    },50);
+});
+
+cell.addEventListener("blur",()=>validateCell(cell,i));
+
+}
+
+}
+
+/* Prix input format */
+const prixInput=row.querySelector(".prixInput");
+
+if(prixInput){
+
+prixInput.addEventListener("input",function(){
+
+let raw=this.value.replace(/\D/g,'');
+
+if(raw===""){
+this.value="";
+return;
+}
+
+let value=parseInt(raw);
+
+if(value<0) value=0;
+if(value>1010000) value=1010000;
+
+this.value=value.toLocaleString('fr-FR');
+
+});
+
+}
+
+/* Action delete */
+const action=row.insertCell(8);
+
+const btn=document.createElement("button");
+btn.innerHTML="🗑";
+btn.className="delete";
+
+btn.onclick=()=>{
+
+if(tbody.rows.length===1){
+showAlert("Impossible de supprimer la dernière ligne.");
+return;
+}
+
+tbody.removeChild(row);
+updateNumbers();
+
+};
+
+action.appendChild(btn);
+
+updateNumbers();
+
+/* Focus sans scroll */
+setTimeout(()=>{
+row.cells[2].focus({preventScroll:true});
+},50);
+
 }
 
 function placeCaretAtEnd(el){el.focus();const range=document.createRange();range.selectNodeContents(el);range.collapse(false);const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);}
