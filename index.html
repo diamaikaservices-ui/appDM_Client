@@ -607,7 +607,11 @@ let validTable=validateTable();
 
 if(!validTop||!validTable){
 await showAlert("Veuillez corriger les erreurs ❌");
+
+setTimeout(()=>{
 focusFirstError();
+},200);
+
 return;
 }
 
