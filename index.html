@@ -216,58 +216,75 @@ return valid;
 }
 
 function addRow(){
-const tbody=document.querySelector("#livraisonTable tbody");
-const row=tbody.insertRow();
-row.insertCell(0).className="number-cell";
-row.insertCell(1).textContent=formattedDate;
+    const tbody=document.querySelector("#livraisonTable tbody");
+    const row=tbody.insertRow();
+    row.insertCell(0).className="number-cell";
+    row.insertCell(1).textContent=formattedDate;
 
-for(let i=2;i<=7;i++){
-let cell=row.insertCell(i);
-cell.contentEditable=true;
+    for(let i=2;i<=7;i++){
+        let cell=row.insertCell(i);
+        cell.contentEditable=true;
 
-if(i===6){
-cell.addEventListener("input",function(){
-let raw=this.textContent.replace(/\D/g,'');
-if(raw===""){this.textContent="";return;}
-let value=parseInt(raw);
-if(value<0)value=0;
-if(value>1010000)value=1010000;
-this.textContent=value.toLocaleString('fr-FR');
-placeCaretAtEnd(this);
-});
-}
+        if(i===3 || i===6){
+        cell.setAttribute("inputmode","numeric");
+        }
 
-cell.addEventListener("blur",()=>validateCell(cell,i));
-}
+        if(i===6){
+        cell.addEventListener("input",function(){
+        let raw=this.textContent.replace(/\D/g,'');
+        if(raw===""){this.textContent="";return;}
+        let value=parseInt(raw);
+        if(value<0)value=0;
+        if(value>1010000)value=1010000;
+        this.textContent=value.toLocaleString('fr-FR');
+        placeCaretAtEnd(this);
+        });
+        }
 
-const action=row.insertCell(8);
-const btn=document.createElement("button");
-btn.innerHTML="🗑";btn.className="delete";
-btn.onclick=()=>{
-if(tbody.rows.length===1){showAlert("Impossible de supprimer la dernière ligne.");return;}
-tbody.removeChild(row);updateNumbers();
-};
-action.appendChild(btn);
+        cell.addEventListener("blur",()=>validateCell(cell,i));
+    }
 
-updateNumbers();
+    const action=row.insertCell(8);
+    const btn=document.createElement("button");
+    btn.innerHTML="🗑";btn.className="delete";
+    btn.onclick=()=>{
+        if(tbody.rows.length===1){showAlert("Impossible de supprimer la dernière ligne.");return;}
+        tbody.removeChild(row);updateNumbers();
+    };
+    action.appendChild(btn);
+    updateNumbers();
+
+    setTimeout(()=>{
+        row.cells[2].focus();
+    },50);
 }
 
 function placeCaretAtEnd(el){el.focus();const range=document.createRange();range.selectNodeContents(el);range.collapse(false);const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);}
 function validateCell(cell,index){
-cell.classList.remove("error-border");
-let value=cell.textContent.trim();
+    cell.classList.remove("error-border");
+    let value=cell.textContent.trim();
 
-if(index===3&&value==="")cell.classList.add("error-border");
-if(index===4&&value==="")cell.classList.add("error-border");
+    if(index===3&&value==="")cell.classList.add("error-border");
+    if(index===4&&value==="")cell.classList.add("error-border");
 
-if(index===6){
-let raw=value.replace(/\D/g,'');
-if(raw===""){cell.classList.add("error-border");}
-else{
-let num=parseInt(raw);
-if(num<0||num>1010000){cell.classList.add("error-border");}
-else{cell.textContent=num.toLocaleString('fr-FR');}
-}}
+    if(index===6){
+        let raw=value.replace(/\D/g,'');
+        if(raw===""){cell.classList.add("error-border");}
+        else{
+            let num=parseInt(raw);
+            if(num<0||num>1010000){cell.classList.add("error-border");}
+            else{cell.textContent=num.toLocaleString('fr-FR');}
+        }
+    }
+    // auto focus ligne suivante
+    if(index===6){
+        let row=cell.parentElement;
+        let next=row.nextElementSibling;
+
+        if(next){
+            next.cells[2].focus();
+        }
+    }
 }
 
 function updateNumbers(){
