@@ -606,8 +606,8 @@ let validTop=validateTopFields();
 let validTable=validateTable();
 
 if(!validTop||!validTable){
-focusFirstError();
 await showAlert("Veuillez corriger les erreurs ❌");
+focusFirstError();
 return;
 }
 
