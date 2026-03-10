@@ -367,7 +367,7 @@ cell.classList.add("error-border");
 
 let num = parseInt(raw);
 
-if(num<0 || num>1010000){
+if(isNaN(num) || num<0 || num>1010000){
 cell.classList.add("error-border");
 }else{
 
