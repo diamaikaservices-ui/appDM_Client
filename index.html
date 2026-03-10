@@ -431,6 +431,7 @@ return valid;
 // Makany @ erreur de saisie automatique ilay curseur
 function focusFirstError(){
 
+// top fields
 const topErrors = document.querySelector(".contactResp.error-border, #lieuRecup.error-border");
 
 if(topErrors){
@@ -439,13 +440,13 @@ topErrors.scrollIntoView({behavior:"smooth", block:"center"});
 
 setTimeout(()=>{
 topErrors.focus();
-topErrors.click();
 },300);
 
 return;
 
 }
 
+// table errors
 const cellError = document.querySelector("#livraisonTable .error-border");
 
 if(cellError){
