@@ -338,60 +338,50 @@ updateNumbers();
 }
 
 function placeCaretAtEnd(el){el.focus();const range=document.createRange();range.selectNodeContents(el);range.collapse(false);const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);}
+
 function validateCell(cell,index){
 
 cell.classList.remove("error-border");
 
 let value = index===6
-? cell.querySelector("input")?.value || ""
+? (cell.querySelector("input")?.value || "")
 : cell.textContent.trim();
 
 /* Contact client obligatoire */
-if(index===3 && value===""){
+if(index===3){
+if(value===""){
 cell.classList.add("error-border");
+}
 }
 
 /* Lieu livraison obligatoire */
-if(index===4 && value===""){
+if(index===4){
+if(value===""){
 cell.classList.add("error-border");
+}
 }
 
 /* Validation Prix */
 if(index===6){
 
-let raw = value.replace(/\D/g,'');
+let raw=value.replace(/\D/g,'');
 
 if(raw===""){
 cell.classList.add("error-border");
-}else{
+return;
+}
 
-let num = parseInt(raw);
+let num=parseInt(raw);
 
 if(isNaN(num) || num<0 || num>1010000){
 cell.classList.add("error-border");
-}else{
+return;
+}
 
-let input = cell.querySelector("input");
+/* Format automatique */
+let input=cell.querySelector("input");
 if(input){
-input.value = num.toLocaleString('fr-FR');
-}
-
-}
-
-}
-
-}
-
-/* Auto ligne suivante rehefa vita Prix */
-if(index===6){
-
-let row = cell.parentElement;
-let next = row.nextElementSibling;
-
-if(next){
-next.cells[2].focus();
-}else{
-addRow();
+input.value=num.toLocaleString('fr-FR');
 }
 
 }
@@ -403,14 +393,38 @@ document.querySelectorAll("#livraisonTable tbody tr").forEach((row,i)=>{row.cell
 }
 
 function validateTable(){
+
 let valid=true;
+
 document.querySelectorAll("#livraisonTable tbody tr").forEach(row=>{
+
 [3,4,6].forEach(i=>{
+
 validateCell(row.cells[i],i);
-if(row.cells[i].classList.contains("error-border"))valid=false;
+
+if(i===6){
+
+let input=row.cells[6].querySelector("input");
+
+if(!input || input.value.trim()===""){
+row.cells[6].classList.add("error-border");
+valid=false;
+}
+
+}else{
+
+if(row.cells[i].classList.contains("error-border")){
+valid=false;
+}
+
+}
+
 });
+
 });
+
 return valid;
+
 }
 
 function buildPayload(){
