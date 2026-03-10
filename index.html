@@ -433,25 +433,37 @@ function focusFirstError(){
 
 // top fields
 const topErrors = document.querySelector(".contactResp.error-border, #lieuRecup.error-border");
+
 if(topErrors){
+
 topErrors.scrollIntoView({behavior:"smooth", block:"center"});
+
+setTimeout(()=>{
 topErrors.focus();
+},300);
+
 return;
+
 }
 
 // table errors
 const cellError = document.querySelector("#livraisonTable .error-border");
+
 if(cellError){
 
 let input = cellError.querySelector("input");
 
+cellError.scrollIntoView({behavior:"smooth", block:"center"});
+
+setTimeout(()=>{
+
 if(input){
-input.scrollIntoView({behavior:"smooth", block:"center"});
 input.focus();
 }else{
-cellError.scrollIntoView({behavior:"smooth", block:"center"});
-cellError.focus();
+placeCaretAtEnd(cellError);
 }
+
+},300);
 
 }
 
