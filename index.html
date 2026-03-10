@@ -361,7 +361,7 @@ cell.classList.add("error-border");
 }
 }
 
-/* Validation Prix */
+/* Prix obligatoire */
 if(index===6){
 
 let raw=value.replace(/\D/g,'');
@@ -428,19 +428,38 @@ return valid;
 }
 
 function buildPayload(){
-const contacts=Array.from(document.querySelectorAll(".contactResp")).map(i=>i.value.trim()).filter(v=>validateSingleContact(v));
+
+const contacts=Array.from(document.querySelectorAll(".contactResp"))
+.map(i=>i.value.trim())
+.filter(v=>validateSingleContact(v));
+
 const rows=document.querySelectorAll("#livraisonTable tbody tr");
+
 let livraisons=[];
 
 rows.forEach(row=>{
+
+let nomClient=row.cells[2].textContent.trim();
+let contactClient=row.cells[3].textContent.trim();
+let lieuLivraison=row.cells[4].textContent.trim();
+let article=row.cells[5].textContent.trim();
+let prix=(row.cells[6].querySelector("input")?.value || "").replace(/\s/g,'');
+let remarque=row.cells[7].textContent.trim();
+
+/* Obligatoire */
+if(contactClient==="" || lieuLivraison==="" || prix===""){
+return;
+}
+
 livraisons.push({
-nomClient:row.cells[2].textContent.trim(),
-contactClient:row.cells[3].textContent.trim(),
-lieuLivraison:row.cells[4].textContent.trim(),
-article:row.cells[5].textContent.trim(),
-prix:row.cells[6].querySelector("input")?.value.replace(/\s/g,'') || "",
-remarque:row.cells[7].textContent.trim()
+nomClient:nomClient,
+contactClient:contactClient,
+lieuLivraison:lieuLivraison,
+article:article,
+prix:prix,
+remarque:remarque
 });
+
 });
 
 return {
@@ -451,6 +470,7 @@ lieuRecuperation:document.getElementById("lieuRecup").value.trim(),
 pageFacebook:document.getElementById("pageFacebook").value.trim(),
 livraisons:livraisons
 };
+
 }
 
 function showAlert(message){
