@@ -225,8 +225,20 @@ function addRow(){
         let cell=row.insertCell(i);
         cell.contentEditable=true;
 
-        if(i===3 || i===6){
-        cell.setAttribute("inputmode","numeric");
+       if(i===3 || i===6){
+        cell.addEventListener("keydown",function(e){
+
+        if(
+        !/[0-9]/.test(e.key) &&
+        e.key !== "Backspace" &&
+        e.key !== "Delete" &&
+        e.key !== "ArrowLeft" &&
+        e.key !== "ArrowRight"
+        ){
+        e.preventDefault();
+        }
+
+        });
         }
 
         if(i===6){
@@ -241,6 +253,39 @@ function addRow(){
         });
         }
 
+        cell.addEventListener("keydown",function(e){
+
+            if(e.key==="Enter"){
+            e.preventDefault();
+
+            let row=this.parentElement;
+            let next=row.nextElementSibling;
+
+            if(next){
+            next.cells[2].focus();
+            }else{
+            addRow();
+            setTimeout(()=>{
+            let rows=document.querySelectorAll("#livraisonTable tbody tr");
+            rows[rows.length-1].cells[2].focus();
+            },100);
+            }
+            }
+
+            if(e.key==="Tab"){
+                e.preventDefault();
+
+                let cellIndex=this.cellIndex;
+                let row=this.parentElement;
+                let next=row.cells[cellIndex+1];
+
+                if(next){
+                next.focus();
+                }
+
+            }
+
+        });
         cell.addEventListener("blur",()=>validateCell(cell,i));
     }
 
