@@ -13,13 +13,13 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#eef2f7
 .main-title{text-align:center;font-size:26px;font-weight:700;margin-bottom:20px;}
 .card{background:white;padding:18px;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.08);margin-bottom:20px;}
 .field{
-margin-bottom:22px;
-padding-bottom:6px;
+margin-bottom:24px;
+padding-bottom:10px;
 border-bottom:1px solid #f1f3f5;
 }
 label{
 font-size:13px;
-font-weight:600;
+font-weight:700;
 display:block;
 margin-bottom:8px;
 color:#555;
@@ -28,7 +28,7 @@ letter-spacing:0.3px;
 .phone-group{display:flex;align-items:center;margin-top:5px;gap:5px}
 .phone-prefix{background:#e9ecef;padding:10px 12px;border-radius:10px 0 0 10px;border:1px solid #ddd;font-size:14px;white-space:nowrap;}
 .phone-group input{border-radius:0 10px 10px 0;border-left:none;flex:1;}
-input{width:100%;padding:11px;border-radius:10px;border:1px solid #ddd;font-size:16px;}
+input{width:100%;padding:11px;border-radius:10px;border:1px solid #ddd;font-size:16px;margin-top:3px;}
 input:focus{border-color:#0d6efd;outline:none}
 .error-border{border:2px solid #dc3545 !important}
 .error-message{font-size:11px;color:#dc3545;margin-top:4px;}
@@ -1108,6 +1108,18 @@ window.scrollTo({
 top:0,
 behavior:"smooth"
 });
+});
+
+history.scrollRestoration = "manual";
+
+window.addEventListener("load", function () {
+
+window.scrollTo({
+top:0,
+left:0,
+behavior:"instant"
+});
+
 });
 
 </script>
