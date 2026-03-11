@@ -103,7 +103,7 @@ td:nth-of-type(5):before{content:"Lieu livraison (Précis) :";}
 td:nth-of-type(6):before{content:"Article :";}
 td:nth-of-type(7):before{content:"Prix colis + livraison (Ar) :";}
 td:nth-of-type(8):before{content:"Remarque :";}
-td:nth-of-type(9):before{content:"Supprimer la livraison :";}
+td:nth-of-type(9):before{content:" ";} /* Supprimer la livraison */
 .number-cell{background:transparent;text-align:left;font-weight:bold;}
 }
 
@@ -361,22 +361,26 @@ border-radius:12px;
 
 /* cellules */
 td{
-padding:9px 5px;
-padding-top:18px;
-min-height:36px;
-font-size:12px;
+padding:10px 6px;
+padding-top:20px;
+min-height:38px;
+font-size:14px;   /* lehibe kokoa */
 }
 
 /* labels dans tableau */
 td:before{
-font-size:10px;
+font-size:12px;
 }
 
 /* champs client contact */
 .client-contact-line input{
 padding:8px;
-font-size:15px;
+font-size:16px;
 }
+
+.prixInput{
+font-size:16px;
+}   
 
 /* notes obligatoire */
 .required-note{
@@ -699,7 +703,7 @@ prixInput.focus();
 const action=row.insertCell(8);
 
 const btn=document.createElement("button");
-btn.innerHTML="🗑";
+btn.innerHTML="🗑 Supprimer la Livraison";
 btn.className="delete";
 
 btn.onclick=()=>{
