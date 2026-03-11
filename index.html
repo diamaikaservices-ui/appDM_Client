@@ -740,28 +740,68 @@ let value = index===6
 ? (cell.querySelector("input")?.value || "")
 : cell.textContent.trim();
 
-/* Contact client obligatoire */
+/* CONTACT CLIENT */
 if(index===3){
 
-let contacts = Array.from(cell.querySelectorAll(".contactClient"))
-.map(i=>i.value.trim())
-.filter(v=>validateSingleContact(v));
+let inputs = Array.from(cell.querySelectorAll(".contactClient"));
+let errorMsg = cell.querySelector(".error-message");
 
-if(contacts.length===0){
-cell.classList.add("error-border");
+let validCount = 0;
+let hasError = false;
+
+inputs.forEach(input=>{
+
+let v = input.value.trim();
+
+/* vide */
+if(v===""){
+input.classList.add("error-border");
+hasError = true;
+return;
+}
+
+/* numero diso */
+if(!validateSingleContact(v)){
+input.classList.add("error-border");
+hasError = true;
 }else{
-cell.classList.remove("error-border");
-}
+input.classList.remove("error-border");
+validCount++;
 }
 
-/* Lieu livraison obligatoire */
+});
+
+/* au moins un numero valide */
+if(validCount===0 || hasError){
+
+cell.classList.add("error-border");
+
+if(errorMsg){
+errorMsg.textContent="Au moins un numéro valide est requis";
+}
+
+}else{
+
+cell.classList.remove("error-border");
+
+if(errorMsg){
+errorMsg.textContent="";
+}
+
+}
+
+}
+
+/* LIEU LIVRAISON */
 if(index===4){
+
 if(value===""){
 cell.classList.add("error-border");
 }
+
 }
 
-/* Prix obligatoire */
+/* PRIX */
 if(index===6){
 
 let raw=value.replace(/\D/g,'');
@@ -778,8 +818,9 @@ cell.classList.add("error-border");
 return;
 }
 
-/* Format automatique */
+/* format automatique */
 let input=cell.querySelector("input");
+
 if(input){
 input.value=num.toLocaleString('fr-FR');
 }
@@ -831,7 +872,7 @@ return valid;
 // Makany @ erreur de saisie automatique ilay curseur
 function focusFirstError(){
 
-// top fields
+/* top fields */
 const topErrors = document.querySelector(".contactResp.error-border, #lieuRecup.error-border");
 
 if(topErrors){
@@ -846,8 +887,24 @@ return;
 
 }
 
-// table errors
-const cellError = document.querySelector("#livraisonTable .error-border");
+/* CONTACT CLIENT INPUT ERROR PRIORITAIRE */
+const clientInputError = document.querySelector(".contactClient.error-border");
+
+if(clientInputError){
+
+clientInputError.scrollIntoView({behavior:"smooth", block:"center"});
+
+setTimeout(()=>{
+clientInputError.focus();
+clientInputError.click();
+},300);
+
+return;
+
+}
+
+/* autres erreurs tableau */
+const cellError = document.querySelector("#livraisonTable td.error-border");
 
 if(cellError){
 
@@ -859,10 +916,8 @@ setTimeout(()=>{
 
 if(input){
 input.focus();
-input.click();
 }else{
 placeCaretAtEnd(cellError);
-cellError.click();
 }
 
 },300);
