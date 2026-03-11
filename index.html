@@ -13,9 +13,7 @@ body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#eef2f7
 .main-title{text-align:center;font-size:26px;font-weight:700;margin-bottom:20px;}
 .card{background:white;padding:18px;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.08);margin-bottom:20px;}
 .field{
-margin-bottom:24px;
-padding-bottom:10px;
-border-bottom:1px solid #f1f3f5;
+margin-bottom:18px;
 }
 label{
 font-size:13px;
@@ -617,7 +615,12 @@ updateNumbers();
 
 /* focus automatique makany @ Nom du client rehefa manindry ajout ligne */
 setTimeout(()=>{
+
+/* focus raha tsy mobile */
+if(window.innerWidth > 768){
 placeCaretAtEnd(row.cells[2]);
+}
+
 },50);
 
 }
@@ -961,17 +964,25 @@ sendBtn.textContent="Envoyer";
 unlockScreen();
 }
 
-window.onload = function(){
+window.addEventListener("load", function(){
 
 history.scrollRestoration = "manual";
 
-/* forcer top */
-document.documentElement.scrollTop = 0;
-document.body.scrollTop = 0;
-
+/* manamboatra ligne livraison voalohany */
 addRow();
 
-};
+/* miandry kely dia mamerina scroll any ambony */
+setTimeout(function(){
+
+window.scrollTo({
+top:0,
+left:0,
+behavior:"instant"
+});
+
+},200);
+
+});
 
 function resetForm(){
 document.getElementById("nomResp").value="";
