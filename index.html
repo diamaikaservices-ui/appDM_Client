@@ -1097,12 +1097,12 @@
     payload.livraisons.forEach((l,i)=>{
     html += `
     <div style="margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #eee">
-    <b>${l.numeroSuivi}</b><br>
+    <b>N° Suivi : ${l.numeroSuivi} </b></br>
     Client : ${l.nomClient || "-"}<br>
     Contact : ${l.contactClient}<br>
     Lieu : ${l.lieuLivraison}<br>
     Article : ${l.article || "-"}<br>
-    Prix : ${l.prix} Ar<br>
+    Prix : ${Number(l.prix).toLocaleString('fr-FR')} Ar <br>
     Remarque : ${l.remarque || "-"}
     </div>
     `;
