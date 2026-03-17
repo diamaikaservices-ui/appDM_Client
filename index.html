@@ -6,8 +6,15 @@
     <title>LIVRAISON DIA MAIKA</title>
 
     <style>
+    /* Ilay token no nahatonga nanisy anio body io */
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-    body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#eef2f7,#f9fbff);margin:0;padding:15px;}
+    body{
+    /* display:none; */
+    font-family:'Segoe UI',sans-serif;
+    background:linear-gradient(135deg,#eef2f7,#f9fbff);
+    margin:0;
+    padding:15px;
+}
     .logo-container{text-align:center;margin-bottom:10px}
     .logo{width:140px;max-width:60%}
     .main-title{text-align:center;font-size:26px;font-weight:700;margin-bottom:20px;}
@@ -415,6 +422,12 @@
 
     <body>
 
+    <div id="loader" style="text-align:center;margin-top:80px;font-size:18px;">
+        ⏳ Chargement...
+    </div>
+
+    <div id="app" style="display:none;">
+
     <div class="logo-container">
     <img src="logo.jpg" class="logo">
     </div>
@@ -422,34 +435,34 @@
     <div class="main-title">LIVRAISON DIA MAIKA</div>
 
     <div class="card">
-    <h3>Pour la récupération</h3>
+        <h3>Pour la récupération</h3>
 
-    <div class="field">
-    <label>Nom du responsable</label>
-    <input type="text" id="nomResp">
-    </div>
+        <div class="field">
+            <label>Nom du responsable</label>
+            <input type="text" id="nomResp">
+        </div>
 
-    <div class="field">
-    <label>Contact du responsable *</label>
-    <div id="contactContainer">
+        <div class="field">
+            <label>Contact du responsable *</label>
+            <div id="contactContainer">
 
-    <div class="phone-group contact-item">
+            <div class="phone-group contact-item">
 
-    <div class="phone-prefix">🇲🇬 +261</div>
+                <div class="phone-prefix">🇲🇬 +261</div>
 
-    <input type="tel" inputmode="numeric"
-    class="contactResp"
-    placeholder="032 12 345 67">
+                <input type="tel" inputmode="numeric"
+                class="contactResp"
+                placeholder="032 12 345 67">
 
-    <button type="button" class="add-icon"
-    onclick="addContact()">➕</button>
+                <button type="button" class="add-icon"
+                onclick="addContact()">➕</button>
 
-    <button type="button" class="delete"
-    onclick="removeContact(this)">🗑</button>
+                <button type="button" class="delete"
+                onclick="removeContact(this)">🗑</button>
 
-    </div>
+            </div>
 
-    </div>
+        </div>
     <div class="error-message" id="errContactResp"></div>
     </div>
 
@@ -498,6 +511,87 @@
 
     <script>
 
+        function startApp(){
+
+  document.getElementById("loader").style.display = "none";
+  document.getElementById("app").style.display = "block";
+
+  // =========================
+  // 🔥 NOM AUTO FROM URL
+  // =========================
+  const nom = new URLSearchParams(window.location.search).get("nom");
+
+  if(nom){
+    const nomResp = document.getElementById("nomResp");
+    nomResp.value = decodeURIComponent(nom);
+
+    // 🔒 readonly
+    nomResp.setAttribute("readonly", true);
+    nomResp.style.background = "#e9ecef";
+    nomResp.style.cursor = "not-allowed";
+  }
+
+  // =========================
+  // 🔥 ADD FIRST ROW
+  // =========================
+  addRow();
+  updateNumbers();
+  updateLivraisonCount();
+
+  // =========================
+  // 🔁 UPDATE rehefa miova (juste sécurité)
+  // =========================
+  document.getElementById("nomResp")
+    .addEventListener("input", updateNumbers);
+
+}
+// GLOBAL TOKEN
+let isTokenValid = false;
+const token = new URLSearchParams(window.location.search).get("token");
+
+// GESTION TOKEN
+(async function(){
+
+  if(!token){
+    document.getElementById("loader").innerHTML = "Lien invalide ❌";
+return;
+  }
+
+  try{
+
+    const res = await fetch("https://script.google.com/macros/s/AKfycbzsR0frZvfbHYBhNydJEJ7oxM9BUltHjEAEcrOUxoN_6yC0dpJaV4Phd0ovq2QxS4Iv/exec?token=" + token, {
+      cache: "no-store"
+    });
+    const data = await res.json();
+
+   if(data.status === "used"){
+     document.getElementById("loader").innerHTML = "Lien déjà utilisé ❌";
+     return;
+   }
+
+    if(data.status === "invalid"){
+     document.getElementById("loader").innerHTML = "Lien invalide ❌";
+      return;
+    }
+
+    if(data.status === "expired"){
+     document.getElementById("loader").innerHTML = "Lien expiré ⏳";
+     return;
+    }
+
+    // ✅ TOKEN OK → aseho ny page
+    isTokenValid = true;
+
+    // 👉 ATOMBOKA APP REHETRA
+    startApp();
+
+  }catch(e){
+   document.getElementById("loader").innerHTML = "Lien invalide ❌";
+  }
+
+})();
+
+    // Code normal
     const today=new Date();
     today.setDate(today.getDate()+1);
 
@@ -1037,12 +1131,13 @@
     });
 
     return {
-    dateLivraison:formattedDate,
-    nomResponsable:document.getElementById("nomResp").value.trim(),
-    contactResponsable:contacts.join(" / "),
-    lieuRecuperation:document.getElementById("lieuRecup").value.trim(),
-    pageFacebook:document.getElementById("pageFacebook").value.trim(),
-    livraisons:livraisons
+        token: token, // ity ilay token
+        dateLivraison:formattedDate,
+        nomResponsable:document.getElementById("nomResp").value.trim(),
+        contactResponsable:contacts.join(" / "),
+        lieuRecuperation:document.getElementById("lieuRecup").value.trim(),
+        pageFacebook:document.getElementById("pageFacebook").value.trim(),
+        livraisons:livraisons
     };
 
     }
@@ -1193,12 +1288,38 @@
 
     try{
 
-    const res=await fetch("https://script.google.com/macros/s/AKfycbwViq3WrM9j-l54EbkUbJg6G4_wZVRUP1HNzRlxEhtOYZGTK0MxYFa-2C7pErL6VD4y/exec",
+    const res=await fetch("https://script.google.com/macros/s/AKfycbzsR0frZvfbHYBhNydJEJ7oxM9BUltHjEAEcrOUxoN_6yC0dpJaV4Phd0ovq2QxS4Iv/exec",
     {method:"POST",body:JSON.stringify(payload)});
 
     const response=await res.json();
 
+    // gestion token
+    if(response.result==="used"){
+    await showAlert("Ce lien a déjà été utilisé ❌");
+    return;
+    }
+
+    if(response.result==="expired"){
+    await showAlert("Lien expiré ⏳");
+    return;
+    }
+
+    if(response.result==="invalid"){
+    await showAlert("Lien invalide ❌");
+    return;
+    }
+
+    if(response.result==="nom_mismatch"){
+    await showAlert("Lien non autorisé ❌");
+    return;
+    }
+
+    // code normal
     if(response.result==="success"){
+
+    // ⚡ SAVE LOCAL TOKEN
+    localStorage.setItem("token_"+token, "used");
+
     await showAlert("Données envoyées ✅<br><br>Vos livraisons sont bien enregistrées, une liste récapitulative vous sera envoyée par message pour confirmer vos commandes.<br><br>Merci 🙂");
     resetLivraisons();
     }else{
@@ -1214,28 +1335,6 @@
     sendBtn.textContent="Envoyer";
     unlockScreen();
     }
-
-    window.addEventListener("load", function(){
-
-    history.scrollRestoration = "manual";
-
-   /* manamboatra ligne livraison voalohany */
-    addRow();
-    updateNumbers();
-    updateLivraisonCount();
-
-    /* miandry kely dia mamerina scroll any ambony */
-    setTimeout(function(){
-
-    window.scrollTo({
-    top:0,
-    left:0,
-    behavior:"instant"
-    });
-
-    },200);
-
-    });
 
     function resetForm(){
     document.getElementById("nomResp").value="";
@@ -1270,43 +1369,6 @@
     const params = new URLSearchParams(window.location.search);
     return params.get(param);
     }
-
-    window.addEventListener("load", function(){
-
-    const nom = getParam("nom");
-
-    if(nom){
-    document.getElementById("nomResp").value = decodeURIComponent(nom);
-    }
-
-    /* mi-update ny N° Suivi */
-    updateNumbers();
-
-    /* mi-update raha miova ny nom */
-    document.getElementById("nomResp").addEventListener("input", updateNumbers);
-
-    });
-
-    // Manakana ny fanovana ny "Nom du responsable" 
-    window.addEventListener("load", function(){
-
-    const nomResp = document.getElementById("nomResp");
-
-    if(nomResp){
-
-    // Atao readonly
-    nomResp.setAttribute("readonly", true);
-
-    // Style mba ho hita fa tsy azo ovaina
-    nomResp.style.background = "#e9ecef";
-    nomResp.style.cursor = "not-allowed";
-
-    // Manakana keyboard
-    nomResp.addEventListener("keydown", function(e){
-    e.preventDefault();
-    });
-    }
-    });
 
     /* Lock écran rehefa mandefa */
     function lockScreen(){
@@ -1471,5 +1533,5 @@ return duplicate;
 
     </script>
 
-    </body>
-    </html> 
+</body>
+</html> 
