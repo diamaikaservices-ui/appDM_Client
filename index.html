@@ -511,43 +511,65 @@
 
     <script>
 
-        function startApp(){
+    function startApp(){
 
-  document.getElementById("loader").style.display = "none";
-  document.getElementById("app").style.display = "block";
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("app").style.display = "block";
 
-  // =========================
-  // 🔥 NOM AUTO FROM URL
-  // =========================
-  const nom = new URLSearchParams(window.location.search).get("nom");
+        // =========================
+        // 🔥 NOM AUTO FROM URL
+        // =========================
 
-  if(nom){
-    const nomResp = document.getElementById("nomResp");
-    nomResp.value = decodeURIComponent(nom);
+        if(secure && secure.nom){
+        const nomResp = document.getElementById("nomResp");
 
-    // 🔒 readonly
-    nomResp.setAttribute("readonly", true);
-    nomResp.style.background = "#e9ecef";
-    nomResp.style.cursor = "not-allowed";
-  }
+        nomResp.value = secure.nom;
 
-  // =========================
-  // 🔥 ADD FIRST ROW
-  // =========================
-  addRow();
-  updateNumbers();
-  updateLivraisonCount();
+        nomResp.setAttribute("readonly", true);
+        nomResp.style.background = "#e9ecef";
+        nomResp.style.cursor = "not-allowed";
+        }
 
-  // =========================
-  // 🔁 UPDATE rehefa miova (juste sécurité)
-  // =========================
-  document.getElementById("nomResp")
-    .addEventListener("input", updateNumbers);
+        // =========================
+        // 🔥 ADD FIRST ROW
+        // =========================
+        addRow();
+        updateNumbers();
+        updateLivraisonCount();
 
-}
+        // =========================
+        // 🔁 UPDATE rehefa miova (juste sécurité)
+        // =========================
+        document.getElementById("nomResp")
+            .addEventListener("input", updateNumbers);
+    }
+
 // GLOBAL TOKEN
 let isTokenValid = false;
-const token = new URLSearchParams(window.location.search).get("token");
+function getSecureParams(){
+
+  const params = new URLSearchParams(window.location.search);
+  const data = params.get("data");
+
+  if(!data) return null;
+
+  try{
+    const decoded = atob(data);
+    return JSON.parse(decoded);
+  }catch(e){
+    return null;
+  }
+}
+
+const secure = getSecureParams();
+
+if(!secure || !secure.token || !secure.nom){
+  document.getElementById("loader").innerHTML = "Lien invalide ❌";
+  throw new Error("Invalid link");
+}
+
+const token = secure.token;
+const nom = secure.nom;
 
 // GESTION TOKEN
 (async function(){
@@ -559,24 +581,32 @@ return;
 
   try{
 
-    const res = await fetch("https://script.google.com/macros/s/AKfycbzsR0frZvfbHYBhNydJEJ7oxM9BUltHjEAEcrOUxoN_6yC0dpJaV4Phd0ovq2QxS4Iv/exec?token=" + token, {
-      cache: "no-store"
-    });
-    const data = await res.json();
+    const API_URL = "https://script.google.com/macros/s/AKfycbyIq2coJSoNWQAgXzwhBXJgSrT8r2dVaaQ993iZ9PiMjho8DZgHfy6SldDqEquXU2pV/exec";
+    const res = await fetch(
+        API_URL + "?token=" + token + "&nom=" + encodeURIComponent(nom)
+    );
 
-   if(data.status === "used"){
-     document.getElementById("loader").innerHTML = "Lien déjà utilisé ❌";
-     return;
-   }
+    const data = await res.json();
+    console.log("STATUS BACKEND:", data);
+
+    if(data.status === "expired"){
+        showSuccessPage();
+        return;
+    }
 
     if(data.status === "invalid"){
      document.getElementById("loader").innerHTML = "Lien invalide ❌";
       return;
     }
 
-    if(data.status === "expired"){
-     document.getElementById("loader").innerHTML = "Lien expiré ⏳";
-     return;
+    if(data.status === "nom_mismatch"){
+        showSuccessPage();
+        return;
+    }
+
+    if(data.status === "used"){
+        showSuccessPage();
+        return;
     }
 
     // ✅ TOKEN OK → aseho ny page
@@ -1288,40 +1318,52 @@ return;
 
     try{
 
-    const res=await fetch("https://script.google.com/macros/s/AKfycbzsR0frZvfbHYBhNydJEJ7oxM9BUltHjEAEcrOUxoN_6yC0dpJaV4Phd0ovq2QxS4Iv/exec",
+    const res=await fetch("https://script.google.com/macros/s/AKfycbyIq2coJSoNWQAgXzwhBXJgSrT8r2dVaaQ993iZ9PiMjho8DZgHfy6SldDqEquXU2pV/exec",
     {method:"POST",body:JSON.stringify(payload)});
 
     const response=await res.json();
 
     // gestion token
     if(response.result==="used"){
+    unlockScreen();
     await showAlert("Ce lien a déjà été utilisé ❌");
+     showSuccessPage();
     return;
     }
 
     if(response.result==="expired"){
+        unlockScreen();
     await showAlert("Lien expiré ⏳");
+     showSuccessPage();
     return;
     }
 
     if(response.result==="invalid"){
+        unlockScreen();
     await showAlert("Lien invalide ❌");
+     showSuccessPage();
     return;
     }
 
     if(response.result==="nom_mismatch"){
+        unlockScreen();
     await showAlert("Lien non autorisé ❌");
+     showSuccessPage();
     return;
     }
 
     // code normal
     if(response.result==="success"){
 
-    // ⚡ SAVE LOCAL TOKEN
+    // ⚡ sauvegarde local
     localStorage.setItem("token_"+token, "used");
 
-    await showAlert("Données envoyées ✅<br><br>Vos livraisons sont bien enregistrées, une liste récapitulative vous sera envoyée par message pour confirmer vos commandes.<br><br>Merci 🙂");
-    resetLivraisons();
+    await showAlert("Données envoyées ✅<br><br>Vos livraisons sont bien enregistrées,<br> Une liste récapitulative vous sera envoyée par message pour confirmer vos commandes.<br><br>Merci de votre confiance 🙂");
+
+    // 👉 PAGE VIDE
+    showSuccessPage();
+    return;
+
     }else{
     await showAlert("Erreur lors de l'envoi ❌");
     }
@@ -1491,45 +1533,99 @@ return;
 
     function checkDuplicateInContainer(container){
 
-const inputs = Array.from(container.querySelectorAll("input[type='tel']"));
+        const inputs = Array.from(container.querySelectorAll("input[type='tel']"));
 
-let numbers = [];
-let duplicate = false;
+        let numbers = [];
+        let duplicate = false;
 
-/* reset border */
-inputs.forEach(input=>{
-input.classList.remove("error-border");
-});
+        /* reset border */
+        inputs.forEach(input=>{
+        input.classList.remove("error-border");
+        });
 
-inputs.forEach(input=>{
+        inputs.forEach(input=>{
 
-let num = input.value.replace(/\D/g,'');
+        let num = input.value.replace(/\D/g,'');
 
-if(num === "") return;
+        if(num === "") return;
 
-if(numbers.includes(num)){
-duplicate = true;
-input.classList.add("error-border");
-}else{
-numbers.push(num);
-}
+        if(numbers.includes(num)){
+        duplicate = true;
+        input.classList.add("error-border");
+        }else{
+        numbers.push(num);
+        }
 
-});
+        });
 
-/* message */
-let errorMsg = container.querySelector(".error-message");
+        /* message */
+        let errorMsg = container.querySelector(".error-message");
 
-if(!errorMsg){
-errorMsg = document.getElementById("errContactResp");
-}
+        if(!errorMsg){
+        errorMsg = document.getElementById("errContactResp");
+        }
 
-if(errorMsg){
-errorMsg.textContent = duplicate ? "⚠ Numéro déjà saisi" : "";
-}
+        if(errorMsg){
+        errorMsg.textContent = duplicate ? "⚠ Numéro déjà saisi" : "";
+        }
 
-return duplicate;
+        return duplicate;
 
-}
+    }
+
+    function lockForm(){
+
+        // désactiver tous les inputs
+        document.querySelectorAll("input, td[contenteditable]").forEach(el=>{
+            el.setAttribute("disabled", true);
+            el.setAttribute("contenteditable", false);
+            el.style.background = "#e9ecef";
+            el.style.cursor = "not-allowed";
+        });
+
+        // désactiver boutons
+        document.querySelectorAll("button").forEach(btn=>{
+            btn.disabled = true;
+            btn.style.opacity = "0.6";
+            btn.style.cursor = "not-allowed";
+        });
+
+        // message
+        const msg = document.createElement("div");
+        msg.style.textAlign = "center";
+        msg.style.fontWeight = "bold";
+        msg.style.marginTop = "20px";
+        msg.style.color = "#198754";
+        msg.innerHTML = "✅ Formulaire déjà envoyé";
+
+        document.getElementById("app").appendChild(msg);
+
+    }
+
+    function showSuccessPage(){
+
+        // fafana daholo contenu
+        document.body.innerHTML = `
+            <div style="
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                height:100vh;
+                text-align:center;
+                font-family:'Segoe UI',sans-serif;
+            ">
+                <div>
+                    <h2 style="color:#fa0202;">DIA MAIKA SERVICES</h2>
+                    <p style="font-size:15px;">
+                        Merci de demander un nouveau lien <br>
+                        pour insérer vos prochaines livraisons. <br><br>
+                        Merci de votre confiance 🙂
+                    </p>
+                </div>
+            </div>
+        `;
+
+    }
 
     </script>
 
