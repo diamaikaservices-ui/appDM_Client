@@ -537,12 +537,14 @@
         addRow();
         updateNumbers();
         updateLivraisonCount();
+        loadFormData();
 
         // =========================
         // 🔁 UPDATE rehefa miova (juste sécurité)
         // =========================
         document.getElementById("nomResp")
             .addEventListener("input", updateNumbers);
+
     }
 
 // GLOBAL TOKEN
@@ -700,14 +702,59 @@ return;
     document.getElementById("lieuRecup").addEventListener("blur",validateTopFields);
 
     function validateTopFields(){
-    let valid=true;let contacts=document.querySelectorAll(".contactResp");let atLeastOne=false;
-    contacts.forEach(input=>{if(validateSingleContact(input.value)){input.classList.remove("error-border");atLeastOne=true;}else{input.classList.add("error-border");}});
-    if(!atLeastOne){document.getElementById("errContactResp").textContent="Au moins un numéro valide est requis";valid=false;}else{document.getElementById("errContactResp").textContent="";}
-    let lieu=document.getElementById("lieuRecup");
-    if(lieu.value.trim()===""){lieu.classList.add("error-border");document.getElementById("errLieuRecup").textContent="Champ obligatoire";valid=false;}
-    else{lieu.classList.remove("error-border");document.getElementById("errLieuRecup").textContent="";}
-    return valid;
+
+    let valid = true;
+    let contacts = document.querySelectorAll(".contactResp");
+    let atLeastOne = false;
+    let numbers = [];
+
+    contacts.forEach(input => {
+
+        let value = input.value.trim();
+        let num = value.replace(/\D/g,'');
+
+        // ❌ format invalide
+        if(!validateSingleContact(value)){
+            input.classList.add("error-border");
+            valid = false;
+            return;
+        }
+
+        // ❌ duplication
+        if(numbers.includes(num)){
+            input.classList.add("error-border");
+            valid = false;
+        }else{
+            numbers.push(num);
+            input.classList.remove("error-border");
+            atLeastOne = true;
+        }
+
+    });
+
+    // ❌ raha tsy misy numero valide
+    if(!atLeastOne){
+        document.getElementById("errContactResp").textContent =
+            "Au moins un numéro valide est requis";
+        valid = false;
+    }else{
+        document.getElementById("errContactResp").textContent = "";
     }
+
+    // LIEU
+    let lieu = document.getElementById("lieuRecup");
+
+    if(lieu.value.trim()===""){
+        lieu.classList.add("error-border");
+        document.getElementById("errLieuRecup").textContent="Champ obligatoire";
+        valid=false;
+    }else{
+        lieu.classList.remove("error-border");
+        document.getElementById("errLieuRecup").textContent="";
+    }
+
+    return valid;
+}
 
     function addRow(){
 
@@ -1360,7 +1407,9 @@ return;
     localStorage.setItem("token_"+token, "used");
 
     await showAlert("Données envoyées ✅<br><br>Vos livraisons sont bien enregistrées,<br> Une liste récapitulative vous sera envoyée par message pour confirmer vos commandes.<br><br>Merci de votre confiance 🙂");
-
+    
+    localStorage.removeItem("formData_"+token);
+    
     // 👉 PAGE VIDE
     showSuccessPage();
     return;
@@ -1625,7 +1674,117 @@ return;
                 </div>
             </div>
         `;
+    }
 
+    document.addEventListener("input", function(){
+        saveFormData();
+    });
+
+    function saveFormData(){
+
+        const data = {
+            nomResp: document.getElementById("nomResp").value,
+            lieuRecup: document.getElementById("lieuRecup").value,
+            pageFacebook: document.getElementById("pageFacebook").value,
+            contactsResp: Array.from(document.querySelectorAll(".contactResp")).map(i=>i.value),
+
+            livraisons: Array.from(document.querySelectorAll("#livraisonTable tbody tr")).map(row=>{
+                return {
+                    nomClient: row.cells[2].textContent,
+                    contactsClient: Array.from(row.cells[3].querySelectorAll(".contactClient")).map(i=>i.value),
+                    lieu: row.cells[4].textContent,
+                    article: row.cells[5].textContent,
+                    prix: row.cells[6].querySelector("input")?.value || "",
+                    remarque: row.cells[7].textContent
+                };
+            })
+        };
+
+        localStorage.setItem("formData_"+token, JSON.stringify(data));
+    }
+
+    function loadFormData(){
+
+        const saved = localStorage.getItem("formData_"+token);
+
+        if(!saved) return;
+
+        const data = JSON.parse(saved);
+
+        document.getElementById("nomResp").value = data.nomResp || "";
+        document.getElementById("lieuRecup").value = data.lieuRecup || "";
+        document.getElementById("pageFacebook").value = data.pageFacebook || "";
+
+        // CONTACT RESPONSABLE
+        const container = document.getElementById("contactContainer");
+      
+        const inputsResp = document.querySelectorAll(".contactResp");
+
+        /* premier input */
+        inputsResp[0].value = data.contactsResp[0] || "";
+
+        /* manampy hafa */
+        for(let i = 1; i < data.contactsResp.length; i++){
+            addContact();
+            const allInputs = document.querySelectorAll(".contactResp");
+            allInputs[i].value = data.contactsResp[i];
+        }
+
+        // TABLE
+        const tbody = document.querySelector("#livraisonTable tbody");
+        tbody.innerHTML = "";
+
+        data.livraisons.forEach(l=>{
+            addRow();
+
+            const row = tbody.lastElementChild;
+
+            row.cells[2].textContent = l.nomClient || "";
+
+            const contacts = row.cells[3].querySelector(".contactContainer");
+            
+           const container = row.cells[3].querySelector(".contactContainer");
+
+            /* premier input */
+            let firstInput = container.querySelector(".contactClient");
+            firstInput.value = l.contactsClient[0] || "";
+
+            /* manampy hafa */
+            for(let i = 1; i < l.contactsClient.length; i++){
+                const btn = container.querySelector(".add-icon");
+                addClientContact(btn);
+
+                const inputs = container.querySelectorAll(".contactClient");
+                inputs[i].value = l.contactsClient[i];
+            }
+
+            row.cells[4].textContent = l.lieu || "";
+            row.cells[5].textContent = l.article || "";
+            row.cells[6].querySelector("input").value = l.prix || "";
+            row.cells[7].textContent = l.remarque || "";
+        });
+
+        setTimeout(()=>{
+
+            // 🔥 VALIDATION GLOBAL
+            validateTopFields();
+
+            // 🔥 FORCE EVENT "input" (important)
+            document.querySelectorAll(".contactResp").forEach(input=>{
+                input.dispatchEvent(new Event("input"));
+                input.dispatchEvent(new Event("blur"));
+            });
+
+            // 🔥 CLIENT CONTACTS
+            document.querySelectorAll(".contactClient").forEach(input=>{
+                input.dispatchEvent(new Event("input"));
+                input.dispatchEvent(new Event("blur"));
+            });
+
+        }, 100);
+
+        updateNumbers();
+        updateLivraisonCount();
     }
 
     </script>
