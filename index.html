@@ -584,7 +584,7 @@ return;
 
   try{
 
-    const API_URL = "https://script.google.com/macros/s/AKfycbyIq2coJSoNWQAgXzwhBXJgSrT8r2dVaaQ993iZ9PiMjho8DZgHfy6SldDqEquXU2pV/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbws46prbkUdKw8OSrzX3PwICO93NzViSaii9oHU-YcquZ6vANDzxojFh1BPpwvNirK5/exec";
     const res = await fetch(
         API_URL + "?token=" + token + "&nom=" + encodeURIComponent(nom)
     );
@@ -1366,7 +1366,7 @@ return;
 
     try{
 
-    const res=await fetch("https://script.google.com/macros/s/AKfycbyIq2coJSoNWQAgXzwhBXJgSrT8r2dVaaQ993iZ9PiMjho8DZgHfy6SldDqEquXU2pV/exec",
+    const res=await fetch("https://script.google.com/macros/s/AKfycbws46prbkUdKw8OSrzX3PwICO93NzViSaii9oHU-YcquZ6vANDzxojFh1BPpwvNirK5/exec",
     {method:"POST",body:JSON.stringify(payload)});
 
     const response=await res.json();
